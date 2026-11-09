@@ -28,7 +28,7 @@ export default function Header() {
         {/* Cleaned up the outlined look to use standard Tailwind outline conventions */}
         <Button 
           button="Log In" 
-          className="bg-transparent text-blue-600 outline outline-1 outline-blue-600/30 hover:outline-blue-600 hover:bg-blue-50/50 shadow-none" 
+          className="bg-transparent text-blue-600 outline outline-blue-600/30 hover:outline-blue-600 hover:bg-blue-50/50 shadow-none" 
         />
         <Button button="Sign Up" />
       </section>
