@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Document status** | Initial working draft |
-| **Version** | 0.1 |
+| **Version** | 0.2 |
 | **Date** | 9 November 2026 |
 | **Product type** | Ride-hailing platform with group-ride fare splitting |
 | **Initial market context** | Ghana |
@@ -219,6 +219,8 @@ The identifiers below can be used when writing tests and tracking implementation
 - **INV-08:** The system shall prevent the ride from exceeding its passenger capacity.
 - **INV-09:** The system shall prevent an unauthorized user from joining a ride.
 - **INV-10:** A participant shall not be removed in a way that silently changes an already-issued fare obligation.
+- **INV-11:** The system shall define a participant-freeze point after which the participant list can no longer change. At that point, every invitation still pending shall be expired and any later attempt to accept it shall be rejected. The freeze point must fall no later than the moment the final fare is recorded and obligations are generated (see FARE-03 and FARE-06). The exact ride status that triggers the freeze is an open decision (see Section 13.5).
+- **INV-12:** Accepting an invitation shall be checked inside a transaction against the ride's current status, the passenger capacity, and, once a driver is assigned, the assigned vehicle's seating capacity. If any check fails, the acceptance shall be rejected.
 
 ### 6.5 Driver registration and approval
 
@@ -238,6 +240,8 @@ The identifiers below can be used when writing tests and tracking implementation
 - **ASSIGN-04:** The assigned driver shall be able to view the ride's pickup and destination.
 - **ASSIGN-05:** The system shall record which driver accepted the ride and when.
 - **ASSIGN-06:** The system shall reject assignment attempts for rides that are no longer available.
+- **ASSIGN-07:** The driver's vehicle shall have enough passenger seats for the ride's confirmed participants at the time of acceptance. Until the participant-freeze point (INV-11), the vehicle shall also have enough seats for the ride's maximum passenger capacity, or the ride's capacity shall be reduced to the vehicle's seat count at assignment. Which of these two rules applies is an open decision (see Section 13.5).
+- **ASSIGN-08:** Driver eligibility (approved, available, and not holding a conflicting active ride) and ride availability shall be checked inside the same transaction that creates the assignment. The driver profile and the ride shall be locked, or an equivalent concurrency guard used, so that a status change or a competing acceptance cannot slip in between the check and the assignment. A driver who is offline or unapproved when the transaction runs shall not be assigned the ride, whatever the result of an earlier check.
 
 ### 6.7 Ride progress
 
@@ -318,6 +322,8 @@ These rules must remain true even when requests arrive concurrently or users beh
 13. Payment obligations are not silently changed after creation.
 14. Every important status change must be authorized and recorded.
 15. The backend, not the frontend, is responsible for enforcing these rules.
+16. The participant list is frozen once obligations are generated, and no invitation can be accepted after the freeze point.
+17. A ride is only assigned to a vehicle with enough seats for its confirmed participants.
 
 Use database constraints and transactions where appropriate. Application-level checks alone may not prevent race conditions.
 
@@ -332,7 +338,7 @@ This is a starting list for designing an ERD. It is not a final schema. Decide t
 | `users` | Shared account and authentication identity |
 | `passenger_profiles` | Passenger-specific information |
 | `driver_profiles` | Driver-specific information and approval status |
-| `vehicles` | Vehicles registered by drivers |
+| `vehicles` | Vehicles registered by drivers, including passenger seating capacity |
 | `rides` | Ride request, locations, creator, capacity, fare, and status |
 | `ride_invitations` | Invitations sent to prospective passengers |
 | `ride_participants` | Users confirmed as travelling on a ride |
@@ -603,6 +609,8 @@ Options:
 ### 13.5 Additional decisions to make before the relevant feature is built
 
 - What is the minimum number of confirmed passengers required before a ride can be offered to drivers?
+- At which ride status does the participant-freeze point (INV-11) occur: when a driver is assigned, when the trip starts, or when the trip completes? What happens to pending invitations at that point?
+- How is vehicle seating capacity applied (ASSIGN-07): offer a ride only to drivers whose vehicle fits the maximum capacity, or shrink the ride's capacity to the vehicle's seats at assignment? Can a passenger accept an invitation after assignment if seats remain?
 - Can the creator proceed alone if nobody accepts the invitation?
 - How long does an invitation remain valid?
 - When can a passenger cancel or leave a ride?
@@ -639,6 +647,8 @@ At minimum, write tests for the following cases.
 - Passenger capacity cannot be exceeded.
 - An unauthorized user cannot accept an invitation intended for someone else.
 - Cancelled or expired rides cannot be accepted by a driver.
+- An invitation cannot be accepted after the participant-freeze point, and pending invitations are expired at that point.
+- Accepting an invitation after driver assignment is rejected if it would exceed the assigned vehicle's seating capacity.
 
 ### Drivers and assignments
 
@@ -646,6 +656,8 @@ At minimum, write tests for the following cases.
 - An unavailable driver cannot accept a ride.
 - Two drivers cannot accept the same ride concurrently.
 - A driver cannot accept conflicting active rides.
+- A driver whose vehicle has too few seats for the ride's confirmed participants cannot accept it.
+- A driver who goes offline or loses approval between the eligibility check and the acceptance transaction cannot be assigned the ride.
 
 ### Fare and payments
 
