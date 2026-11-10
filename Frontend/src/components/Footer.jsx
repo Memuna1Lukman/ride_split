@@ -11,7 +11,7 @@ export default function Footer() {
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-neutral-400">
           <section className="flex flex-col gap-3">
-              <h1 className="font-bold text-white text-sm">Company</h1>
+              <h2 className="font-bold text-white text-sm">Company</h2>
               <ul className="flex flex-col gap-2 text-xs font-medium">
                   <li className="hover:text-white cursor-pointer transition-colors">About Us</li>
                   <li className="hover:text-white cursor-pointer transition-colors">Our Offering</li>
@@ -23,7 +23,7 @@ export default function Footer() {
           </section>
 
           <section className="flex flex-col gap-3">
-              <h1 className="font-bold text-white text-sm">Product</h1>
+              <h2 className="font-bold text-white text-sm">Product</h2>
               <ul className="flex flex-col gap-2 text-xs font-medium">
                   <li className="hover:text-white cursor-pointer transition-colors">Ride</li>
                   <li className="hover:text-white cursor-pointer transition-colors">Drive</li>
@@ -35,7 +35,7 @@ export default function Footer() {
           </section>
 
           <section className="flex flex-col gap-3">
-              <h1 className="font-bold text-white text-sm">Global Citizenship</h1>
+              <h2 className="font-bold text-white text-sm">Global Citizenship</h2>
               <ul className="flex flex-col gap-2 text-xs font-medium">
                   <li className="hover:text-white cursor-pointer transition-colors">Safety</li>
                   <li className="hover:text-white cursor-pointer transition-colors">Sustainability</li>
@@ -43,7 +43,7 @@ export default function Footer() {
           </section>
 
           <section className="flex flex-col gap-3">
-              <h1 className="font-bold text-white text-sm">Travel</h1>
+              <h2 className="font-bold text-white text-sm">Travel</h2>
               <ul className="flex flex-col gap-2 text-xs font-medium">
                   <li className="hover:text-white cursor-pointer transition-colors">Reserve</li>
                   <li className="hover:text-white cursor-pointer transition-colors">Airports</li>

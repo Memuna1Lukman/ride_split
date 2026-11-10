@@ -7,14 +7,15 @@ import bgImage from '../assets/uber.jpg';
 export default function Dashboard() {
   return (
     <div 
-      className="min-h-screen w-full bg-cover bg-center bg-no-repeat bg-black/50 bg-blend-multiply flex flex-col font-sans select-none"
+      className="min-h-screen w-full bg-cover bg-center bg-fixed bg-no-repeat bg-black/60 bg-blend-multiply flex flex-col font-sans"
       style={{ backgroundImage: `url(${bgImage})`}}
     >
         <Header/>
         
-        <div className="grow flex items-center">
+        <div className="flex-1 w-full flex flex-col">
           <Main/>
         </div>
+        
         <Footer/>
     </div>
   )
