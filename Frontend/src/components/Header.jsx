@@ -1,37 +1,45 @@
 import React from 'react'
 import logo from '../assets/white.png';
-import Button from './ui/Button';
 import { Link } from 'react-router';
 
 export default function Header() {
   return (
-    <nav className="w-full  backdrop-blur-md sticky top-0 z-50  px-4 sm:px-8 py-3 flex items-center justify-between font-sans">
-      <section className="flex items-center cursor-pointer transition-opacity hover:opacity-90">
-        {/* Scaled down the image height to keep the header compact and clean */}
-        <img src={logo} alt="black logo" className="h-28 w-auto object-contain" />
-      </section>
-      
-      
-      <section className="hidden md:flex items-center gap-8 text-sm font-medium tracking-wide text-gray-600">
-        <Link to="/" className="hover:text-blue-600 transition-colors duration-200">
-          Home
+    <header className="sticky top-0 z-50 w-full px-3 pt-3 sm:px-6 sm:pt-6">
+      <nav className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 rounded-full border border-white/10 bg-neutral-900/40 px-3 py-2 backdrop-blur-md sm:px-5">
+        <Link
+          to="/"
+          aria-label="Ride Split home"
+          className="flex shrink-0 items-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-200"
+        >
+          <img
+            src={logo}
+            alt="Ride Split"
+            className="h-9 w-24 object-cover object-center brightness-200 sm:h-16 sm:w-48"
+          />
         </Link>
-        <Link to="/contact" className="hover:text-blue-600 transition-colors duration-200">
-          Contact
-        </Link>
-        <Link to="/about" className="hover:text-blue-600 transition-colors duration-200">
-          About Us
-        </Link>
-      </section>
-      
-      <section className="flex items-center gap-3 sm:gap-4 text-sm font-semibold">
-        {/* Cleaned up the outlined look to use standard Tailwind outline conventions */}
-        <Button 
-          button="Log In" 
-          className="bg-transparent text-blue-600 outline outline-1 outline-blue-600/30 hover:outline-blue-600 hover:bg-blue-50/50 shadow-none" 
-        />
-        <Button button="Sign Up" />
-      </section>
-    </nav>
+
+        <section className="hidden items-center gap-6 text-xs font-semibold tracking-wide text-neutral-300 md:flex">
+          <Link to="/" className="hover:text-white transition-colors duration-200">Ride</Link>
+          <Link to="/drive" className="hover:text-white transition-colors duration-200">Drive</Link>
+          <Link to="/about" className="hover:text-white transition-colors duration-200">About</Link>
+          <Link to="/how-it-works" className="hover:text-white transition-colors duration-200">How It Works</Link>
+        </section>
+
+        <section className="flex shrink-0 items-center gap-2" aria-label="Account actions">
+          <button
+            type="button"
+            className="min-h-10 rounded-full px-3 text-xs font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-200 sm:px-4"
+          >
+            Log in
+          </button>
+          <button
+            type="button"
+            className="min-h-10 rounded-full bg-lime-200 px-3 text-xs font-bold text-neutral-900 transition-colors hover:bg-lime-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-200 sm:px-4"
+          >
+            Sign up
+          </button>
+        </section>
+      </nav>
+    </header>
   )
 }
