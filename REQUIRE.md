@@ -359,3 +359,53 @@ README.md
 - p50/p95 latency of `/drivers/nearby` with N seeded drivers
 - Double-allocations under concurrent accept test (target: 0)
 - WebSocket connections held per node
+
+
+
+### Highest-priority pages
+
+  - Find a Ride — pickup, destination, date/time, passenger count, and ride results.
+  - Ride Details — route map, driver profile, vehicle information, available seats, price breakdown, and “Join Ride”.
+  - Create a Ride — drivers can publish their route, departure time, seats, and fare.
+  - Booking / Checkout — confirm the ride, split fare, payment method, and cancellation policy.
+  - My Trips — upcoming, active, completed, and cancelled rides.
+  - Live Trip Tracking — map, driver ETA, trip status, and emergency/share-trip actions.
+  - Profile & Settings — account details, vehicle information, payment methods, preferences, and verification.
+  - Messages — rider/driver chat for pickup coordination.
+  - Help & Safety — FAQs, support contact, report issue, and safety guidelines.
+
+  ### Useful reusable components
+
+  - Pickup and destination search form
+  - Date/time picker
+  - Ride result card
+  - Driver profile card
+  - Fare-splitting calculator
+  - Seat selector
+  - Route/map preview
+  - Filter and sort toolbar
+  - Booking confirmation modal
+  - Payment method selector
+  - Trip status timeline
+  - Live ETA badge
+  - Rating and review form
+  - Notification dropdown
+  - Chat panel
+  - Empty, loading, error, and success states
+  - Mobile bottom navigation
+  - Verification badge
+  - Cancellation confirmation modal
+
+  ### Suggested build order
+
+  1. Find a Ride
+  2. Ride Details
+  3. Create a Ride
+  4. Booking / Checkout
+  5. My Trips
+  6. Profile and Settings
+  7. Live Tracking
+  8. Messages and Help
+
+  The most important next step is the Find a Ride page because it turns the current marketing experience into the beginning of the core product
+  flow.
