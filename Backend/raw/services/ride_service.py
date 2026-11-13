@@ -28,12 +28,11 @@ def create_ride(
     )
 
     try:
-        driver_ride_capacity = ride.capacity >=1
         new_ride = models.Ride(
             creator_id=current_user.id,
             pickup_location=pickup_point,
             dropoff_location=dropoff_point,
-            capacity=driver_ride_capacity,
+            capacity=ride.capacity,
             estimated_fare_pesewas=ride.estimated_fare_pesewas,
             currency=ride.currency,
             idempotency_key=ride.idempotency_key,

@@ -17,9 +17,9 @@ router = APIRouter(
     response_model=schemas.RideOut
 )
 def create_rides(ride: schemas.RideCreate,db:Session=Depends(get_db),current_user:models.User=Depends(oauth.get_current_user)):
-    ride_service.create_ride(ride, current_user, db)
+    return ride_service.create_ride(ride, current_user, db)
 
 @router.get("/{id}",response_model=schemas.RideOut)
 def get_rides(id:int,db:Session=Depends(get_db),current_user:models.User=Depends(oauth.get_current_user)):
-    ride_service.get_ride(current_user,db,id)
-      
+    return ride_service.get_ride(current_user,db,id)
+
