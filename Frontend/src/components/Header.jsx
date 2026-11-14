@@ -52,18 +52,18 @@ export default function Header() {
         </div>
 
         <section className="flex shrink-0 items-center gap-2" aria-label="Account actions">
-          <button
-            type="button"
-            className="min-h-10 rounded-full px-3 text-xs font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-200 sm:px-4"
+          <Link
+            to="/login"
+            className="flex min-h-10 items-center justify-center rounded-full px-3 text-xs font-bold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-200 sm:px-4"
           >
             Log in
-          </button>
-          <button
-            type="button"
-            className="min-h-10 rounded-full bg-lime-200 px-3 text-xs font-bold text-neutral-900 transition-colors hover:bg-lime-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-200 sm:px-4"
+          </Link>
+          <Link
+            to="/signup"
+            className="flex min-h-10 items-center justify-center rounded-full bg-lime-200 px-3 text-xs font-bold text-neutral-900 transition-colors hover:bg-lime-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-200 sm:px-4"
           >
             Sign up
-          </button>
+          </Link>
         </section>
       </nav>
     </header>
