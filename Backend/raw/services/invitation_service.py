@@ -31,17 +31,13 @@ def create_invitation(
             detail="You are not allowed to invite anybody to this ride"
         )
 
-    
-    if current_user.id != models.RideParticipant.is_creator:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="You are not allowed to invite anybody")
-
-    invitee = db.query(models.User).filter(models.User.id == models.RideInvitation.invitee_id).first()
+    invitee = db.query(models.User).filter(models.User.id == invitation.invitee_id).first()
     if not invitee:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Please Login")
     existing_participants = (
         db.query(models.RideParticipant).filter(
             models.RideParticipant.ride_id == ride_id,
-            models.RideParticipant.user_id == models.RideInvitation.invitee_id
+            models.RideParticipant.user_id == invitation.invitee_id
         ).first()
     )
     if existing_participants:
@@ -52,7 +48,7 @@ def create_invitation(
         db.query(models.RideInvitation)
         .filter(
             models.RideInvitation.ride_id == ride_id,
-            models.RideInvitation.invitee_id == models.RideInvitation.invitee_id
+            models.RideInvitation.invitee_id == invitation.invitee_id
         ).first()
     )
     if existing_invite:
@@ -93,7 +89,7 @@ def respond_to_invitation(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="You are not allowed")
 
     invitation_exist.status = response.status
-    if response.status == "accepted":
+    if response.status == models.InvitationStatus.accepted:
         new_participant = models.RideParticipant(
             ride_id=invitation_exist.ride_id,
             user_id=current_user.id,
