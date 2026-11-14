@@ -36,6 +36,7 @@ def get_all_rides(db:Session=Depends(get_db),current_user:models.User = Depends(
             models.RideParticipant.user_id == current_user.id
         )).distinct().all()
     )
+    return rides
 
 
 @router.post(
