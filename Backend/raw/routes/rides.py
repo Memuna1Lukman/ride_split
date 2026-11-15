@@ -141,6 +141,16 @@ def delete_my_particapation(
             detail="The ride creator cannot leave; cancel the ride instead",
         )
 
+    if ride.status in (
+        models.RideStatus.completed,
+        models.RideStatus.cancelled,
+        models.RideStatus.expired,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Participants cannot leave a finalized ride",
+        )
+
     db.delete(participant)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

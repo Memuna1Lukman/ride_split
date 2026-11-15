@@ -409,3 +409,20 @@ README.md
 
   The most important next step is the Find a Ride page because it turns the current marketing experience into the beginning of the core product
   flow.
+
+
+  Driver endpoints:
+
+  4. PATCH /drivers/me/status
+     Set driver state to AVAILABLE, OFFLINE, or BUSY. Your DriverStatusUpdate schema already exists.
+
+  5. PATCH /drivers/me/location
+     Sends the driver’s current latitude and longitude. Your DriverLocationUpdate schema already exists.
+
+  6. GET /drivers/me/rides
+     Shows the logged-in driver’s current assigned ride and past rides.
+
+  7. Driver-offer flow:
+      - POST /rides/{ride_id}/driver-offers — platform creates an offer for a driver.
+      - GET /driver-offers/me — driver sees pending offers.
+      - PATCH /driver-offers/{offer_id} — driver accepts or rejects.
