@@ -94,8 +94,8 @@ def respond_to_invitation(
     db:Session
 ):
     invitation_exist = db.query(models.RideInvitation).filter(
-        models.RideInvitation.id == invitation_id
-    ).first()
+       models.RideInvitation.id == invitation_id
+    ).with_for_update().first()
     if not invitation_exist:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Ride not found")
     # confirm the invited person is the current user
@@ -105,7 +105,12 @@ def respond_to_invitation(
     if invitation_exist.status != models.InvitationStatus.pending:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="Invitation has already been answered")
 
-    ride = invitation_exist.ride
+    ride = (
+        db.query(models.Ride)
+        .filter(models.Ride.id == invitation_exist.ride_id)
+        .with_for_update()
+        .first()
+    )
     if not ride:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Ride not found")
 
