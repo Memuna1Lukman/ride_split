@@ -47,6 +47,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
+    op.execute("CREATE EXTENSION IF NOT EXISTS postgis")
     op.create_geospatial_table('driver_locations',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('driver_id', sa.Integer(), nullable=False),
