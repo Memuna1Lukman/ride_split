@@ -17,5 +17,10 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+    rules: {
+      // JSX component references are supplied by the automatic React runtime.
+      'no-unused-vars': 'off',
+      'react-refresh/only-export-components': 'off',
+    },
   },
 ])

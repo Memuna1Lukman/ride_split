@@ -7,6 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+@app.get("/")
+def greeting():
+    return {"message":"Good Afternoon memuna"}
 
 app.include_router(auth.router)
 app.include_router(user.router)
