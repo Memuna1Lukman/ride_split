@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router'
 import orderRide from '../assets/location.jpg';
 import invitation from '../assets/people.jpg';
 import splitRide from '../assets/images.png';
@@ -51,12 +52,12 @@ export default function Main() {
                 </span>
               </div>
 
-              <button
-                type="button"
+              <Link
+                to="/request-ride"
                 className="size-20 sm:size-24 rounded-full bg-lime-200 hover:bg-lime-300 text-neutral-900 font-bold text-sm sm:text-base flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg shadow-lime-200/20 shrink-0 cursor-pointer ml-auto focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-200"
               >
-                Explore
-              </button>
+                Request a ride
+              </Link>
             </div>
           </div>
         </div>

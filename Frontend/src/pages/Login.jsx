@@ -1,11 +1,19 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import logo from '../assets/white.png';
 import bgImage from '../assets/uber.jpg';
+import { useAuth } from '../features/auth/AuthContext';
+import Input from '../components/ui/Input';
+import Spinner from '../components/ui/Spinner';
 
 export default function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
   const [role, setRole] = useState('passenger');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -20,9 +28,18 @@ export default function Login() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Logging in user:', { ...formData, role });
+    setError('');
+    setIsSubmitting(true);
+    try {
+      await login(formData);
+      navigate(location.state?.from || '/request-ride', { replace: true });
+    } catch (loginError) {
+      setError(loginError.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -99,14 +116,13 @@ export default function Login() {
             <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-1.5">
               Email Address
             </label>
-            <input
+            <Input
               type="email"
               name="email"
               required
               value={formData.email}
               onChange={handleChange}
               placeholder="jane@example.com"
-              className="w-full rounded-xl border border-white/10 bg-neutral-950/70 px-4 py-3 text-sm text-white placeholder-neutral-500 transition-all focus:border-lime-200 focus:outline-none focus:ring-1 focus:ring-lime-200"
             />
           </div>
 
@@ -121,14 +137,14 @@ export default function Login() {
               </a>
             </div>
             <div className="relative">
-              <input
+              <Input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
                 required
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-white/10 bg-neutral-950/70 px-4 py-3 text-sm text-white placeholder-neutral-500 transition-all focus:border-lime-200 focus:outline-none focus:ring-1 focus:ring-lime-200 pr-10"
+                inputClassName="pr-10"
               />
               <button
                 type="button"
@@ -165,12 +181,19 @@ export default function Login() {
             </label>
           </div>
 
+          {error && (
+            <p role="alert" className="rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+              {error}
+            </p>
+          )}
+
           {/* Submit Button */}
           <button
             type="submit"
+            disabled={isSubmitting}
             className="w-full rounded-full bg-lime-200 hover:bg-lime-300 text-neutral-900 font-bold py-3.5 px-6 text-sm sm:text-base transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-lime-200/20 cursor-pointer mt-4"
           >
-            Log In
+            {isSubmitting ? <span className="inline-flex items-center gap-2"><Spinner label="Logging in" />Logging in…</span> : 'Log In'}
           </button>
         </form>
 

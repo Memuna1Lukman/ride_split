@@ -1,11 +1,18 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import logo from '../assets/white.png';
 import bgImage from '../assets/uber.jpg';
+import { useAuth } from '../features/auth/AuthContext';
+import Input from '../components/ui/Input';
+import Spinner from '../components/ui/Spinner';
 
 export default function SignUp() {
+  const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [role, setRole] = useState('passenger');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -24,10 +31,24 @@ export default function SignUp() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle registration submission logic
-    console.log('Registering user:', { ...formData, role });
+    setError('');
+    setIsSubmitting(true);
+    try {
+      await signUp({
+        full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim(),
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        role: role === 'driver' ? 'DRIVER' : 'PASSENGER',
+      });
+      navigate('/request-ride', { replace: true });
+    } catch (signUpError) {
+      setError(signUpError.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -102,31 +123,29 @@ export default function SignUp() {
           {/* First & Last Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-white mb-1.5">
                 First Name
               </label>
-              <input
+              <Input
                 type="text"
                 name="firstName"
                 required
                 value={formData.firstName}
                 onChange={handleChange}
                 placeholder="Jane"
-                className="w-full rounded-xl border border-white/10 bg-neutral-950/70 px-4 py-3 text-sm text-white placeholder-neutral-500 transition-all focus:border-lime-200 focus:outline-none focus:ring-1 focus:ring-lime-200"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-white mb-1.5">
                 Last Name
               </label>
-              <input
+              <Input
                 type="text"
                 name="lastName"
                 required
                 value={formData.lastName}
                 onChange={handleChange}
                 placeholder="Doe"
-                className="w-full rounded-xl border border-white/10 bg-neutral-950/70 px-4 py-3 text-sm text-white placeholder-neutral-500 transition-all focus:border-lime-200 focus:outline-none focus:ring-1 focus:ring-lime-200"
               />
             </div>
           </div>
@@ -134,31 +153,29 @@ export default function SignUp() {
           {/* Email & Phone */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-white mb-1.5">
                 Email Address
               </label>
-              <input
+              <Input
                 type="email"
                 name="email"
                 required
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="jane@example.com"
-                className="w-full rounded-xl border border-white/10 bg-neutral-950/70 px-4 py-3 text-sm text-white placeholder-neutral-500 transition-all focus:border-lime-200 focus:outline-none focus:ring-1 focus:ring-lime-200"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-white mb-1.5">
                 Phone Number
               </label>
-              <input
+              <Input
                 type="tel"
                 name="phone"
                 required
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+1 (555) 000-0000"
-                className="w-full rounded-xl border border-white/10 bg-neutral-950/70 px-4 py-3 text-sm text-white placeholder-neutral-500 transition-all focus:border-lime-200 focus:outline-none focus:ring-1 focus:ring-lime-200"
               />
             </div>
           </div>
@@ -166,33 +183,32 @@ export default function SignUp() {
           {/* City & Password */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-white mb-1.5">
                 City Name
               </label>
-              <input
+              <Input
                 type="text"
                 name="cityName"
                 required
                 value={formData.cityName}
                 onChange={handleChange}
                 placeholder="San Francisco"
-                className="w-full rounded-xl border border-white/10 bg-neutral-950/70 px-4 py-3 text-sm text-white placeholder-neutral-500 transition-all focus:border-lime-200 focus:outline-none focus:ring-1 focus:ring-lime-200"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-white mb-1.5">
                 Password
               </label>
               <div className="relative">
-                <input
+                <Input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   required
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full rounded-xl border border-white/10 bg-neutral-950/70 px-4 py-3 text-sm text-white placeholder-neutral-500 transition-all focus:border-lime-200 focus:outline-none focus:ring-1 focus:ring-lime-200 pr-10"
+                  inputClassName="pr-10"
                 />
                 <button
                   type="button"
@@ -239,12 +255,25 @@ export default function SignUp() {
             </label>
           </div>
 
+          {role === 'driver' && (
+            <p className="rounded-xl border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs text-amber-100">
+              Driver registration needs vehicle details. Choose Passenger for the ride-request flow for now.
+            </p>
+          )}
+
+          {error && (
+            <p role="alert" className="rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+              {error}
+            </p>
+          )}
+
           {/* Submit Button */}
           <button
             type="submit"
+            disabled={isSubmitting || role === 'driver'}
             className="w-full rounded-full bg-lime-200 hover:bg-lime-300 text-neutral-900 font-bold py-3.5 px-6 text-sm sm:text-base transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-lime-200/20 cursor-pointer mt-4"
           >
-            Create Account
+            {isSubmitting ? <span className="inline-flex items-center gap-2"><Spinner label="Creating account" />Creating account…</span> : 'Create Account'}
           </button>
         </form>
 
