@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import logo from '../assets/white.png';
+import logo from '../../assets/white.png';
 import { Link } from 'react-router';
 
 export default function Header() {

@@ -117,7 +117,7 @@ def delete_my_particapation(
     current_user:models.User=Depends(oauth.get_current_user)
 ):
     # This endpoint lets a non-creator leave a ride.
-    ride = db.query(models.Ride).filter(models.Ride.id == ride_id).first()
+    ride = db.query(models.Ride).filter(models.Ride.id == ride_id).with_for_update().first()
     if not ride:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
