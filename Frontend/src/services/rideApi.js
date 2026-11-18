@@ -1,4 +1,4 @@
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '')
+const apiBaseUrl = (import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000').replace(/\/$/, '')
 
 export const isApiConfigured = Boolean(apiBaseUrl)
 
@@ -12,14 +12,13 @@ async function request(path, options = {}) {
   return response.status === 204 ? null : response.json()
 }
 
-export function createRide({ offer, capacity }) {
+export function createRide({ pickup, dropoff, rideType }) {
   return request('/rides/', {
     method: 'POST',
     body: JSON.stringify({
-      pickup_location: { latitude: 5.605, longitude: -0.183 },
-      dropoff_location: { latitude: 5.544, longitude: -0.187 },
-      capacity,
-      estimated_fare_pesewas: Math.round(offer * 100),
+      pickup_location: { latitude: pickup.latitude, longitude: pickup.longitude },
+      dropoff_location: { latitude: dropoff.latitude, longitude: dropoff.longitude },
+      capacity: rideType === 'solo' ? 1 : 4,
       currency: 'GHS',
       idempotency_key: crypto.randomUUID(),
     }),

@@ -1,24 +1,38 @@
-import { createContext, useContext, useState } from "react";
-import { getCurrentUser, loginUser, registerUser } from "./authApi";
+import { createContext, useContext, useEffect, useState } from "react";
+import { getCurrentUser, loginUser, logoutUser, registerUser } from "./authApi";
 
 const AuthContext = createContext(null);
 const STORAGE_KEY = "ride-split-user";
 
-function getStoredUser() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY));
-  } catch {
-    return null;
-  }
-}
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(getStoredUser);
+  const [user, setUser] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   function saveUser(nextUser) {
     setUser(nextUser);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
   }
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    async function validateSession() {
+      try {
+        const currentUser = await getCurrentUser();
+        if (isCurrent) saveUser(currentUser);
+      } catch {
+        localStorage.removeItem(STORAGE_KEY);
+        if (isCurrent) setUser(null);
+      } finally {
+        if (isCurrent) setIsInitializing(false);
+      }
+    }
+
+    validateSession();
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   async function login(credentials) {
     await loginUser(credentials);
@@ -28,17 +42,23 @@ export function AuthProvider({ children }) {
   }
 
   async function signUp(details) {
-    await registerUser(details);
-    return login({ email: details.email, password: details.password });
+    const account = await registerUser(details);
+    try {
+      const currentUser = await login({ email: details.email, password: details.password });
+      return { account, currentUser, loginError: null };
+    } catch (loginError) {
+      return { account, currentUser: null, loginError };
+    }
   }
 
-  function logout() {
+  async function logout() {
+    await logoutUser();
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: Boolean(user), login, signUp, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: Boolean(user), isInitializing, login, signUp, logout }}>
       {children}
     </AuthContext.Provider>
   );

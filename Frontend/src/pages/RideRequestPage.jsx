@@ -1,6 +1,7 @@
-import { useEffect,useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import RideMap from '../components/map/RideMap'
 import { getDrivingRoute } from '../services/mapService'
+import { createRide } from '../services/rideApi'
 import { useAuth } from '../features/auth/AuthContext'
 import RouteSetupForm from '../components/ride/RouteSetupForm'
 import Spinner from '../components/ui/Spinner'
@@ -14,18 +15,30 @@ export default function RideRequestPage() {
     const [isLoadingRoute, setIsLoadingRoute] = useState(false);
     const [error, setError] = useState("");
     const [rideType, setRideType] = useState("shared");
+    const [isCreatingRide, setIsCreatingRide] = useState(false);
+    const [creationError, setCreationError] = useState("");
+    const [createdRide, setCreatedRide] = useState(null);
+    const routeRequestId = useRef(0);
 
+    function invalidateRoute() {
+        routeRequestId.current += 1;
+        setRoute(null);
+        setIsLoadingRoute(false);
+    }
 
     function handleMapSubmit(location){
         setError("");
+        setCreationError("");
+        setCreatedRide(null);
         if(selectionMode === "pickup"){
+            invalidateRoute();
             setPickup({...location,label:"Selected Pickup"});
             setDropoff(null);
-            setRoute(null);
             setSelectionMode("drop-off");
             return
         }
         if (selectionMode === "drop-off") {
+            invalidateRoute();
             setDropoff({ ...location, label: "Selected destination" });
             setSelectionMode(null);
         }
@@ -33,33 +46,60 @@ export default function RideRequestPage() {
 
     function selectPickup(location) {
         setError("");
+        setCreationError("");
+        setCreatedRide(null);
+        invalidateRoute();
         setPickup(location);
         setDropoff(null);
-        setRoute(null);
         setSelectionMode("drop-off");
     }
 
     function selectDropoff(location) {
         setError("");
+        setCreationError("");
+        setCreatedRide(null);
+        invalidateRoute();
         setDropoff(location);
         setSelectionMode(null);
     }
 
-    useEffect(()=>{
-        if (!pickup || !dropoff) return;
+    useEffect(() => {
+        const requestId = ++routeRequestId.current;
+        if (!pickup || !dropoff) return undefined;
+
         async function loadRoute(){
             try{
                 setIsLoadingRoute(true);
-                setRoute(await getDrivingRoute(pickup,dropoff));
+                const nextRoute = await getDrivingRoute(pickup,dropoff);
+                if (requestId === routeRequestId.current) setRoute(nextRoute);
             }catch(routeError){
-                setError(routeError.message);
+                if (requestId === routeRequestId.current) setError(routeError.message);
             }finally{
-                setIsLoadingRoute(false)
+                if (requestId === routeRequestId.current) setIsLoadingRoute(false);
             }
         }
         loadRoute();
-    },[pickup,dropoff])
+        return () => {
+            if (requestId === routeRequestId.current) routeRequestId.current += 1;
+        };
+    }, [pickup, dropoff]);
     const canCreateRide = pickup && dropoff && route && !isLoadingRoute;
+
+    async function handleCreateRide() {
+        if (!canCreateRide || isCreatingRide) return;
+
+        setCreationError("");
+        setCreatedRide(null);
+        setIsCreatingRide(true);
+        try {
+            const nextRide = await createRide({ pickup, dropoff, rideType });
+            setCreatedRide(nextRide);
+        } catch (rideError) {
+            setCreationError(rideError.message);
+        } finally {
+            setIsCreatingRide(false);
+        }
+    }
   return (
     <main className="mx-auto max-w-6xl p-6">
         <p className="mb-2 text-sm font-semibold text-lime-700">Welcome, {user.full_name}</p>
@@ -133,18 +173,25 @@ export default function RideRequestPage() {
 
             <button
               type="button"
-              disabled={!canCreateRide}
+              onClick={handleCreateRide}
+              disabled={!canCreateRide || isCreatingRide}
               className="mt-6 w-full rounded-lg bg-lime-400 px-4 py-3 font-bold text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Create {rideType} ride
+              {isCreatingRide ? 'Creating ride…' : `Create ${rideType} ride`}
             </button>
+
+            {creationError && <p role="alert" className="mt-3 text-sm text-red-600">{creationError}</p>}
+            {createdRide && <p role="status" className="mt-3 text-sm text-lime-700">Your {rideType} ride has been created.</p>}
 
             <button
               type="button"
               onClick={() => {
                 setPickup(null);
                 setDropoff(null);
-                setRoute(null);
+                invalidateRoute();
+                setError("");
+                setCreationError("");
+                setCreatedRide(null);
                 setSelectionMode("pickup");
               }}
               className="mt-3 w-full text-sm text-neutral-600"

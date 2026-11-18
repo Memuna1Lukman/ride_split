@@ -12,6 +12,7 @@ export default function SignUp() {
   const [role, setRole] = useState('passenger');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loginRecovery, setLoginRecovery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -34,16 +35,21 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoginRecovery('');
     setIsSubmitting(true);
     try {
-      await signUp({
+      const result = await signUp({
         full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim(),
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
         role: role === 'driver' ? 'DRIVER' : 'PASSENGER',
       });
-      navigate('/request-ride', { replace: true });
+      if (result.currentUser) {
+        navigate('/request-ride', { replace: true });
+      } else {
+        setLoginRecovery(result.loginError?.message || 'Your account was created, but automatic login was unavailable.');
+      }
     } catch (signUpError) {
       setError(signUpError.message);
     } finally {
@@ -267,10 +273,16 @@ export default function SignUp() {
             </p>
           )}
 
+          {loginRecovery && (
+            <p role="status" className="rounded-xl border border-lime-300/30 bg-lime-300/10 px-3 py-2 text-sm text-lime-100">
+              {loginRecovery} Your account exists — <Link to="/login" state={{ email: formData.email }} className="font-bold underline">log in to continue</Link>.
+            </p>
+          )}
+
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting || role === 'driver'}
+            disabled={isSubmitting || Boolean(loginRecovery) || role === 'driver'}
             className="w-full rounded-full bg-lime-200 hover:bg-lime-300 text-neutral-900 font-bold py-3.5 px-6 text-sm sm:text-base transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-lime-200/20 cursor-pointer mt-4"
           >
             {isSubmitting ? <span className="inline-flex items-center gap-2"><Spinner label="Creating account" />Creating account…</span> : 'Create Account'}

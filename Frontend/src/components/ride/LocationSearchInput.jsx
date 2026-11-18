@@ -1,9 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  newSearchSessionToken,
-  retrieveGhanaPlace,
-  suggestGhanaPlaces,
-} from "../../services/mapService";
+import { useEffect, useState } from "react";
+import { searchGhanaPlaces } from "../../services/mapService";
 import EmptyState from "../ui/EmptyState";
 import Input from "../ui/Input";
 import Spinner from "../ui/Spinner";
@@ -14,7 +10,6 @@ export default function LocationSearchInput({ label, placeholder, value, onSelec
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
-  const sessionToken = useRef(newSearchSessionToken());
 
   const shouldSearch = query.trim().length >= 2 && query !== value?.label;
 
@@ -27,7 +22,7 @@ export default function LocationSearchInput({ label, placeholder, value, onSelec
       try {
         setIsSearching(true);
         setError("");
-        const results = await suggestGhanaPlaces(trimmedQuery, sessionToken.current);
+        const results = await searchGhanaPlaces(trimmedQuery);
         if (isCurrent) {
           setSuggestions(results);
           setHasSearched(true);
@@ -49,11 +44,9 @@ export default function LocationSearchInput({ label, placeholder, value, onSelec
     try {
       setIsSearching(true);
       setError("");
-      const location = await retrieveGhanaPlace(suggestion.mapbox_id, sessionToken.current);
-      onSelect(location);
-      setQuery(location.label);
+      onSelect(suggestion);
+      setQuery(suggestion.label);
       setSuggestions([]);
-      sessionToken.current = newSearchSessionToken();
     } catch (selectionError) {
       setError(selectionError.message);
     } finally {

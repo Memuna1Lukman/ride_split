@@ -35,3 +35,11 @@ export async function getCurrentUser() {
   const response = await fetch(`${API_BASE_URL}/users/me`, { credentials: "include" });
   return readResponse(response);
 }
+
+export async function logoutUser() {
+  const response = await fetch(`${API_BASE_URL}/auth/`, {
+    method: "POST",
+    credentials: "include",
+  });
+  return readResponse(response);
+}

@@ -1,4 +1,4 @@
-// Mapbox Search Box and Directions API calls.
+// Mapbox Geocoding v6 and Directions API calls.
 const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 function requireToken() {
@@ -7,22 +7,15 @@ function requireToken() {
     }
 }
 
-function newSearchSessionToken() {
-    return crypto.randomUUID();
-}
-
-export { newSearchSessionToken };
-
-export async function suggestGhanaPlaces(query, sessionToken) {
+export async function searchGhanaPlaces(query) {
     requireToken();
 
-    const url = new URL("https://api.mapbox.com/search/searchbox/v1/suggest");
+    const url = new URL("https://api.mapbox.com/search/geocode/v6/forward");
     url.search = new URLSearchParams({
         q: query,
         country: "GH",
         language: "en",
         limit: "5",
-        session_token: sessionToken,
         access_token: token,
     });
 
@@ -30,33 +23,21 @@ export async function suggestGhanaPlaces(query, sessionToken) {
     if (!response.ok) throw new Error("Could not search places. Please try again.");
 
     const data = await response.json();
-    return data.suggestions ?? [];
-}
-
-export async function retrieveGhanaPlace(mapboxId, sessionToken) {
-    requireToken();
-
-    const url = new URL(`https://api.mapbox.com/search/searchbox/v1/retrieve/${encodeURIComponent(mapboxId)}`);
-    url.search = new URLSearchParams({
-        session_token: sessionToken,
-        access_token: token,
+    return (data.features ?? []).flatMap((feature) => {
+        const [longitude, latitude] = feature.geometry?.coordinates ?? [];
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return [];
+        const properties = feature.properties ?? {};
+        const name = properties.name_preferred || properties.name || feature.name || "Selected location";
+        const fullAddress = properties.full_address || feature.properties?.place_formatted || feature.place_formatted;
+        return [{
+            mapbox_id: properties.mapbox_id || feature.id,
+            name,
+            full_address: fullAddress,
+            label: fullAddress || name,
+            latitude,
+            longitude,
+        }];
     });
-
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Could not select that place. Please try again.");
-
-    const data = await response.json();
-    const feature = data.features?.[0];
-    if (!feature) throw new Error("That place did not include a usable location.");
-
-    const [longitude, latitude] = feature.geometry.coordinates;
-    const properties = feature.properties ?? {};
-
-    return {
-        label: properties.full_address || properties.name || "Selected location",
-        latitude,
-        longitude,
-    };
 }
 
 export async function getDrivingRoute(pickup,dropoff){
