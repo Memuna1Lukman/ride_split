@@ -23,10 +23,6 @@ def create_rides(ride: schemas.RideCreate, response: Response, db:Session=Depend
         response.status_code = status.HTTP_200_OK
     return created_ride
 
-@router.get("/{id}",response_model=schemas.RideOut)
-def get_rides(id:int,db:Session=Depends(get_db),current_user:models.User=Depends(oauth.get_current_user)):
-    return ride_service.get_ride(current_user,db,id)
-
 @router.get("/",response_model=List[schemas.RideOut])
 def get_all_rides(db:Session=Depends(get_db),current_user:models.User = Depends(oauth.get_current_user)):
     rides = (
@@ -77,16 +73,33 @@ def respond_to_invitation(
     )
 
 
-@router.get("/invitation/me",response_model=List[schemas.RideInvitationOut])
-def my_invitation(
+@router.get("/invitations/me",response_model=List[schemas.RideInvitationOut])
+def my_invitations(
     db:Session=Depends(get_db),
     current_user:models.User=Depends(oauth.get_current_user)
 ):
-    rides = db.query(models.RideInvitation).filter(
+    invitations = db.query(models.RideInvitation).filter(
         models.RideInvitation.invitee_id == current_user.id
-    ).all()
+    ).order_by(models.RideInvitation.invited_at.desc()).all()
 
-    return rides
+    return invitations
+
+
+@router.get("/{ride_id}/invitations", response_model=List[schemas.RideInvitationOut])
+def get_ride_invitations(
+    ride_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth.get_current_user),
+):
+    ride = ride_service.get_ride(current_user, db, ride_id)
+    if ride.creator_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the ride creator can view invitations")
+    return (
+        db.query(models.RideInvitation)
+        .filter(models.RideInvitation.ride_id == ride_id)
+        .order_by(models.RideInvitation.invited_at.desc())
+        .all()
+    )
 
 
 @router.patch("/{ride_id}/cancel",response_model=schemas.RideOut)
@@ -164,22 +177,13 @@ def get_all_participants(
     db:Session = Depends(get_db),
     current_user:models.User=Depends(oauth.get_current_user)
 ):
-    # This endpoint allows the creator to see all ride participants.
-    ride = db.query(models.Ride).filter(models.Ride.id == ride_id).first()
-    if not ride:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Ride not found"
-        )
-
-    is_creator = db.query(models.RideParticipant).filter(
-        models.RideParticipant.ride_id == ride_id,
-        models.RideParticipant.user_id == current_user.id,
-        models.RideParticipant.is_creator.is_(True),
-    ).first()
-    if not is_creator:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Not authorized to view all participants")
+    ride_service.get_ride(current_user, db, ride_id)
 
     return db.query(models.RideParticipant).filter(
         models.RideParticipant.ride_id == ride_id
-    ).all()
+    ).order_by(models.RideParticipant.joined_at.asc()).all()
+
+
+@router.get("/{ride_id}",response_model=schemas.RideOut)
+def get_ride(ride_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(oauth.get_current_user)):
+    return ride_service.get_ride(current_user, db, ride_id)

@@ -1,17 +1,74 @@
-import { Check, Copy, Link as LinkIcon } from 'lucide-react'
-import { initialRiders } from '../../utils/mockData'
-import { useState } from 'react'
+import { Search, UserPlus } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { createInvitation, searchPassengers } from '../../services/rideApi'
 import Modal from '../ui/Modal'
 
-export default function InviteModal({ onClose, onSave }) {
-  const [chosen, setChosen] = useState(['kojo', 'esi'])
-  const [copied, setCopied] = useState(false)
-  const toggle = (id) => setChosen((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id])
-  const copy = () => { navigator.clipboard?.writeText('ridesplit.app/join/ACCRA-42'); setCopied(true); setTimeout(() => setCopied(false), 1400) }
-  return <Modal isOpen onClose={onClose} title="Invite co-riders" description="Split this trip with friends on your route.">
-      <div className="space-y-2">{initialRiders.map((friend) => <button key={friend.id} onClick={() => toggle(friend.id)} className="flex w-full items-center gap-3 rounded-2xl p-2 text-left hover:bg-slate-50"><span className={`grid h-10 w-10 place-items-center rounded-full text-xs font-bold text-white ${friend.color}`}>{friend.initials}</span><span className="flex-1"><span className="block text-sm font-semibold text-slate-800">{friend.name}</span><span className="block text-xs text-slate-500">Near {friend.stop}</span></span><span className={`grid h-5 w-5 place-items-center rounded-full border ${chosen.includes(friend.id) ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300'}`}>{chosen.includes(friend.id) && <Check className="h-3.5 w-3.5" />}</span></button>)}</div>
-      <button onClick={copy} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"><LinkIcon className="h-4 w-4" />{copied ? 'Invite link copied' : 'Copy invite link'} {copied && <Copy className="h-3.5 w-3.5" />}</button>
-      {/* Future API: POST /rides/{rideId}/invitations for every selected user. */}
-      <button onClick={() => { onSave(chosen); onClose() }} className="mt-2 w-full rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white hover:bg-emerald-700">Send invitations</button>
+export default function InviteModal({ rideId, participantIds, invitedUserIds, onClose, onInvitationSent }) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [isSending, setIsSending] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const trimmedQuery = query.trim()
+    if (trimmedQuery.length < 2) {
+      return undefined
+    }
+
+    let isCurrent = true
+    const timer = window.setTimeout(async () => {
+      try {
+        setIsSearching(true)
+        setError('')
+        const passengers = await searchPassengers(trimmedQuery)
+        if (isCurrent) setResults(passengers)
+      } catch (searchError) {
+        if (isCurrent) setError(searchError.message)
+      } finally {
+        if (isCurrent) setIsSearching(false)
+      }
+    }, 300)
+
+    return () => {
+      isCurrent = false
+      window.clearTimeout(timer)
+    }
+  }, [query])
+
+  async function sendInvitation(passenger) {
+    if (isSending) return
+    try {
+      setIsSending(true)
+      setError('')
+      const invitation = await createInvitation(rideId, passenger.id)
+      onInvitationSent(invitation)
+      setQuery('')
+      setResults([])
+    } catch (invitationError) {
+      setError(invitationError.message)
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  const availableResults = (query.trim().length >= 2 ? results : []).filter((passenger) => !participantIds.includes(passenger.id) && !invitedUserIds.includes(passenger.id))
+
+  return <Modal isOpen onClose={onClose} title="Invite co-riders" description="Search for a registered passenger and send an invitation.">
+    <label className="block text-sm font-semibold text-slate-800" htmlFor="passenger-search">Find a passenger</label>
+    <div className="relative mt-2">
+      <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+      <input id="passenger-search" value={query} onChange={(event) => setQuery(event.target.value)} autoFocus placeholder="Name or email" className="min-h-11 w-full rounded-xl border border-slate-200 py-2 pl-10 pr-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" />
+    </div>
+    {error && <p role="alert" className="mt-3 text-sm text-red-600">{error}</p>}
+    {isSearching && <p className="mt-3 text-sm text-slate-500">Searching passengers…</p>}
+    {!isSearching && query.trim().length >= 2 && availableResults.length === 0 && !error && <p className="mt-3 text-sm text-slate-500">No eligible passengers found.</p>}
+    <div className="mt-3 max-h-64 space-y-2 overflow-y-auto">
+      {availableResults.map((passenger) => <div key={passenger.id} className="flex items-center gap-3 rounded-xl border border-slate-200 p-3">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-800">{passenger.full_name.slice(0, 2).toUpperCase()}</span>
+        <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{passenger.full_name}</p><p className="truncate text-xs text-slate-500">{passenger.email}</p></div>
+        <button type="button" disabled={isSending} onClick={() => sendInvitation(passenger)} className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"><UserPlus className="size-3.5" aria-hidden="true" />Invite</button>
+      </div>)}
+    </div>
   </Modal>
 }

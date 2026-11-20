@@ -41,6 +41,8 @@ def create_ride(
             creator_id=current_user.id,
             pickup_location=pickup_point,
             dropoff_location=dropoff_point,
+            pickup_label=ride.pickup_label,
+            dropoff_label=ride.dropoff_label,
             capacity=ride.capacity,
             estimated_fare_pesewas=ride.estimated_fare_pesewas,
             currency=ride.currency,

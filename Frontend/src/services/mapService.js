@@ -1,8 +1,5 @@
 // Mapbox Geocoding v6 and Directions API calls.
 const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-// This explicit deployment setting is the account-holder's confirmation that
-// permanent Geocoding API storage is enabled for this Mapbox account.
-const permanentGeocodingEnabled = import.meta.env.VITE_MAPBOX_PERMANENT_GEOCODING === "true";
 
 function requireToken() {
     if (!token) {
@@ -19,7 +16,6 @@ export async function searchGhanaPlaces(query) {
         country: "GH",
         language: "en",
         limit: "5",
-        permanent: String(permanentGeocodingEnabled),
         access_token: token,
     });
 
@@ -40,7 +36,6 @@ export async function searchGhanaPlaces(query) {
             label: fullAddress || name,
             latitude,
             longitude,
-            isPermanentGeocode: permanentGeocodingEnabled,
         }];
     });
 }
