@@ -10,7 +10,7 @@ export default function Header({prop1="",prop2="",prop3="",prop4="",prop5="",pro
   if (variant === 'sidebar') {
     const navItems = [
       { label: prop1 || 'City Ride', href: '/request-ride', active: true },
-      { label: prop2 || 'Order History', href: '#order-history' },
+      { label: prop2 || 'My invitations', href: '/invitations' },
       { label: prop3 || 'Notification', href: '#notifications' },
       { label: prop4 || 'Safety', href: '#safety' },
       { label: prop5 || 'Driver mode', href: '#driver-mode' },

@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -89,3 +89,28 @@ def get_me(
     current_user: models.User = Depends(oauth.get_current_user)
 ):
     return current_user
+
+
+@router.get(
+    "/",
+    response_model=list[schemas.PassengerSummaryOut],
+)
+def search_passengers(
+    query: str = Query(min_length=2, max_length=150),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth.get_current_user),
+):
+    """Return active passenger accounts that can be invited to a ride."""
+    normalized_query = f"%{query.strip()}%"
+    return (
+        db.query(models.User)
+        .filter(
+            models.User.role == models.Role.passenger,
+            models.User.is_active.is_(True),
+            models.User.id != current_user.id,
+            (models.User.full_name.ilike(normalized_query) | models.User.email.ilike(normalized_query)),
+        )
+        .order_by(models.User.full_name.asc())
+        .limit(10)
+        .all()
+    )

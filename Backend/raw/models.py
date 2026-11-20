@@ -250,6 +250,12 @@ class Ride(Base):
         nullable=False,
     )
 
+    # Human-readable labels selected in the route form. Coordinates remain the
+    # source of truth for routing and matching; labels make past rides usable.
+    pickup_label = Column(String(255), nullable=True)
+
+    dropoff_label = Column(String(255), nullable=True)
+
     capacity = Column(Integer, nullable=False, default=4)
 
     # All monetary values are stored in pesewas.

@@ -133,6 +133,8 @@ class DriverProfileOut(APIModel):
 class RideCreate(BaseModel):
     pickup_location: Location
     dropoff_location: Location
+    pickup_label: str = Field(min_length=1, max_length=255)
+    dropoff_label: str = Field(min_length=1, max_length=255)
     capacity: int = Field(default=4, gt=0, le=100)
     estimated_fare_pesewas: Optional[Pesewas] = None
     currency: str = Field(default="GHS", min_length=3, max_length=3)
@@ -169,6 +171,12 @@ class RideFareFinalize(BaseModel):
         return value.upper()
 
 
+class PassengerSummaryOut(APIModel):
+    id: int
+    full_name: str
+    email: EmailStr
+
+
 class RideParticipantOut(APIModel):
     id: int
     ride_id: int
@@ -176,6 +184,7 @@ class RideParticipantOut(APIModel):
     is_creator: bool
     joined_at: datetime
     fare_share_pesewas: Optional[int] = None
+    user: PassengerSummaryOut
 
 
 class RideInvitationCreate(BaseModel):
@@ -225,6 +234,8 @@ class RideOut(APIModel):
     id: int
     creator_id: int
     driver_id: Optional[int] = None
+    pickup_label: Optional[str] = None
+    dropoff_label: Optional[str] = None
     capacity: int
     estimated_fare_pesewas: Optional[int] = None
     final_fare_pesewas: Optional[int] = None

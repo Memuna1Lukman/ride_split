@@ -1,4 +1,3 @@
-import { Link } from 'react-router';
 import { Mail, Phone, UserRound } from 'lucide-react';
 import Header from '../components/layout/Header';
 import { useAuth } from '../features/auth/AuthContext';
@@ -30,10 +29,6 @@ export default function ProfilePage() {
             <ProfileDetail icon={Phone} label="Phone" value={user?.phone} />
           </dl>
         </section>
-
-        <Link to="/request-ride" className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-lime-200 px-4 text-sm font-bold text-neutral-950 transition hover:bg-lime-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-200">
-          Request a ride
-        </Link>
       </main>
     </div>
   );
