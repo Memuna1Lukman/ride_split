@@ -13,6 +13,7 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loginRecovery, setLoginRecovery] = useState('');
+  const [recoveryEmail, setRecoveryEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -36,6 +37,7 @@ export default function SignUp() {
     e.preventDefault();
     setError('');
     setLoginRecovery('');
+    setRecoveryEmail('');
     setIsSubmitting(true);
     try {
       const result = await signUp({
@@ -48,6 +50,7 @@ export default function SignUp() {
       if (result.currentUser) {
         navigate('/request-ride', { replace: true });
       } else {
+        setRecoveryEmail(formData.email);
         setLoginRecovery(result.loginError?.message || 'Your account was created, but automatic login was unavailable.');
       }
     } catch (signUpError) {
@@ -275,7 +278,7 @@ export default function SignUp() {
 
           {loginRecovery && (
             <p role="status" className="rounded-xl border border-lime-300/30 bg-lime-300/10 px-3 py-2 text-sm text-lime-100">
-              {loginRecovery} Your account exists — <Link to="/login" state={{ email: formData.email }} className="font-bold underline">log in to continue</Link>.
+              {loginRecovery} Your account exists — <Link to="/login" state={{ email: recoveryEmail }} className="font-bold underline">log in to continue</Link>.
             </p>
           )}
 

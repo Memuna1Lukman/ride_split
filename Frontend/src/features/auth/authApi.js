@@ -6,7 +6,9 @@ async function readResponse(response) {
     const detail = Array.isArray(body?.detail)
       ? body.detail.map((item) => item.msg).join(", ")
       : body?.detail;
-    throw new Error(detail || "Something went wrong. Please try again.");
+    const error = new Error(detail || "Something went wrong. Please try again.");
+    error.status = response.status;
+    throw error;
   }
   return body;
 }

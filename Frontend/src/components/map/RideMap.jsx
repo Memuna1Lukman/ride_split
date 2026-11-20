@@ -52,7 +52,7 @@ export default function RideMap({pickup,dropoff,route,selectionMode,onMapClick,f
   }
 
   return (
-    <div className='relative h-125 overflow-hidden rounded-2xl border border-neutral-200'>
+    <div className='relative h-112 overflow-hidden rounded-2xl border border-white/10 sm:h-125'>
       <Map
         ref={mapRef}
         initialViewState={GHANA_VIEW}
@@ -68,7 +68,7 @@ export default function RideMap({pickup,dropoff,route,selectionMode,onMapClick,f
 
       </Map>
         <div
-          className="absolute left-4 right-14 top-4 z-10 max-w-sm rounded-xl bg-white p-2 shadow-lg sm:right-auto sm:w-80"
+          className="absolute left-4 right-14 top-4 z-10 max-w-sm rounded-xl border border-white/10 bg-neutral-900/95 p-2 shadow-lg shadow-black/30 sm:right-auto sm:w-80"
           onClick={(event) => event.stopPropagation()}
         >
           <LocationSearchInput
@@ -79,7 +79,7 @@ export default function RideMap({pickup,dropoff,route,selectionMode,onMapClick,f
           />
         </div>
         {selectionMode && (
-          <div className="absolute bottom-4 left-4 z-10 rounded-lg bg-white px-3 py-2 text-sm font-semibold shadow">
+          <div className="absolute bottom-4 left-4 z-10 rounded-xl border border-white/10 bg-neutral-900/95 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-black/30">
             Click the map to choose your {selectionMode}
           </div>
         )}

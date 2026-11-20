@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useInsertionEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
@@ -14,6 +14,12 @@ export default function Modal({
   const closeButtonRef = useRef(null);
   const dialogRef = useRef(null);
   const onCloseRef = useRef(onClose);
+  const previouslyFocusedElementRef = useRef(null);
+
+  // This runs before DOM mutations, so child autofocus cannot replace the opener.
+  useInsertionEffect(() => {
+    if (isOpen) previouslyFocusedElementRef.current = document.activeElement;
+  }, [isOpen]);
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -22,7 +28,6 @@ export default function Modal({
   useEffect(() => {
     if (!isOpen) return undefined;
     const previousOverflow = document.body.style.overflow;
-    const previouslyFocusedElement = document.activeElement;
     const onKeyDown = (event) => {
       if (event.key === 'Escape') onCloseRef.current?.();
 
@@ -39,10 +44,10 @@ export default function Modal({
 
       const firstElement = focusableElements[0];
       const lastElement = focusableElements[focusableElements.length - 1];
-      if (event.shiftKey && document.activeElement === firstElement) {
+      if (event.shiftKey && (document.activeElement === dialogRef.current || document.activeElement === firstElement)) {
         event.preventDefault();
         lastElement.focus();
-      } else if (!event.shiftKey && document.activeElement === lastElement) {
+      } else if (!event.shiftKey && (document.activeElement === dialogRef.current || document.activeElement === lastElement)) {
         event.preventDefault();
         firstElement.focus();
       }
@@ -56,8 +61,8 @@ export default function Modal({
       window.clearTimeout(focusTimer);
       document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', onKeyDown);
-      if (previouslyFocusedElement instanceof HTMLElement && previouslyFocusedElement.isConnected) {
-        previouslyFocusedElement.focus();
+      if (previouslyFocusedElementRef.current instanceof HTMLElement && previouslyFocusedElementRef.current.isConnected) {
+        previouslyFocusedElementRef.current.focus();
       }
     };
   }, [isOpen]);

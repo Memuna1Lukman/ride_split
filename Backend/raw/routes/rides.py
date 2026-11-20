@@ -17,8 +17,11 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
     response_model=schemas.RideOut
 )
-def create_rides(ride: schemas.RideCreate,db:Session=Depends(get_db),current_user:models.User=Depends(oauth.get_current_user)):
-    return ride_service.create_ride(ride, current_user, db)
+def create_rides(ride: schemas.RideCreate, response: Response, db:Session=Depends(get_db),current_user:models.User=Depends(oauth.get_current_user)):
+    created_ride, was_replayed = ride_service.create_ride(ride, current_user, db)
+    if was_replayed:
+        response.status_code = status.HTTP_200_OK
+    return created_ride
 
 @router.get("/{id}",response_model=schemas.RideOut)
 def get_rides(id:int,db:Session=Depends(get_db),current_user:models.User=Depends(oauth.get_current_user)):

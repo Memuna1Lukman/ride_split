@@ -12,7 +12,7 @@ async function request(path, options = {}) {
   return response.status === 204 ? null : response.json()
 }
 
-export function createRide({ pickup, dropoff, rideType }) {
+export function createRide({ pickup, dropoff, rideType, idempotencyKey }) {
   return request('/rides/', {
     method: 'POST',
     body: JSON.stringify({
@@ -20,7 +20,7 @@ export function createRide({ pickup, dropoff, rideType }) {
       dropoff_location: { latitude: dropoff.latitude, longitude: dropoff.longitude },
       capacity: rideType === 'solo' ? 1 : 4,
       currency: 'GHS',
-      idempotency_key: crypto.randomUUID(),
+      idempotency_key: idempotencyKey,
     }),
   })
 }
