@@ -1,14 +1,15 @@
 import LocationSearchInput from "./LocationSearchInput";
 
-export default function RouteSetupForm({ pickup, dropoff, onPickupSelect, onDropoffSelect }) {
+export default function RouteSetupForm({ pickup, dropoff, onPickupSelect, onDropoffSelect, onPickupUnconfirmedChange, onDropoffUnconfirmedChange }) {
   return (
-    <section className="grid gap-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:grid-cols-2">
+    <section className="grid gap-4 sm:grid-cols-2">
       <LocationSearchInput
         key={pickup?.label ?? "pickup"}
         label="Pickup"
         placeholder="Search a city, landmark, or address in Ghana"
         value={pickup}
         onSelect={onPickupSelect}
+        onUnconfirmedChange={onPickupUnconfirmedChange}
       />
       <LocationSearchInput
         key={dropoff?.label ?? "dropoff"}
@@ -16,6 +17,7 @@ export default function RouteSetupForm({ pickup, dropoff, onPickupSelect, onDrop
         placeholder="Where are you going?"
         value={dropoff}
         onSelect={onDropoffSelect}
+        onUnconfirmedChange={onDropoffUnconfirmedChange}
       />
     </section>
   );

@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 from geoalchemy2.elements import WKTElement
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
@@ -16,6 +17,14 @@ def create_ride(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only active passengers can create rides.",
         )
+
+    if ride.idempotency_key:
+        existing_ride = db.query(models.Ride).filter(
+            models.Ride.creator_id == current_user.id,
+            models.Ride.idempotency_key == ride.idempotency_key,
+        ).first()
+        if existing_ride:
+            return existing_ride, True
 
     # PostGIS POINT values use x=longitude followed by y=latitude.
     pickup_point = WKTElement(
@@ -50,10 +59,17 @@ def create_ride(
         )
         db.commit()
         db.refresh(new_ride)
-        return new_ride
-    except Exception:
+        return new_ride, False
+    except IntegrityError:
         # Keep ride creation atomic: never persist a ride without its creator.
         db.rollback()
+        if ride.idempotency_key:
+            existing_ride = db.query(models.Ride).filter(
+                models.Ride.creator_id == current_user.id,
+                models.Ride.idempotency_key == ride.idempotency_key,
+            ).first()
+            if existing_ride:
+                return existing_ride, True
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="there has been a conflict")
     
 

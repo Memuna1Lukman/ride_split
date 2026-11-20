@@ -6,7 +6,9 @@ async function readResponse(response) {
     const detail = Array.isArray(body?.detail)
       ? body.detail.map((item) => item.msg).join(", ")
       : body?.detail;
-    throw new Error(detail || "Something went wrong. Please try again.");
+    const error = new Error(detail || "Something went wrong. Please try again.");
+    error.status = response.status;
+    throw error;
   }
   return body;
 }
@@ -33,5 +35,13 @@ export async function loginUser({ email, password }) {
 
 export async function getCurrentUser() {
   const response = await fetch(`${API_BASE_URL}/users/me`, { credentials: "include" });
+  return readResponse(response);
+}
+
+export async function logoutUser() {
+  const response = await fetch(`${API_BASE_URL}/auth/`, {
+    method: "POST",
+    credentials: "include",
+  });
   return readResponse(response);
 }

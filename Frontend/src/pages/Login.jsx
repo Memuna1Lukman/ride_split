@@ -15,7 +15,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    email: location.state?.email ?? '',
     password: '',
     rememberMe: false,
   });
