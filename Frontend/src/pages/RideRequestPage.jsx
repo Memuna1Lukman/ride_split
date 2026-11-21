@@ -3,6 +3,7 @@ import RideMap from '../components/map/RideMap'
 import { getDrivingRoute } from '../services/mapService'
 import { createRide } from '../services/rideApi'
 import { useAuth } from '../features/auth/AuthContext'
+import { useNavigate } from 'react-router'
 import RouteSetupForm from '../components/ride/RouteSetupForm'
 import Spinner from '../components/ui/Spinner'
 import Header from '../components/layout/Header'
@@ -10,6 +11,7 @@ import { CarFront, CheckCircle2, Circle, MapPin, Navigation, RotateCcw, Route } 
 
 export default function RideRequestPage() {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [pickup,setPickup]= useState(null);
     const [dropoff,setDropoff]= useState(null);
     const [route,setRoute] = useState(null);
@@ -42,12 +44,6 @@ export default function RideRequestPage() {
         }
     }
 
-    function ensurePermanentGeocode(location) {
-        if (location.isPermanentGeocode === false) {
-            throw new Error("Select this location on the map or enable permanent Mapbox geocoding before saving it to a ride.");
-        }
-    }
-
     function invalidateRoute() {
         routeRequestId.current += 1;
         setRoute(null);
@@ -73,7 +69,6 @@ export default function RideRequestPage() {
     }
 
     function selectPickup(location) {
-        ensurePermanentGeocode(location);
         startNewDraft();
         setError("");
         clearCurrentDraftFeedback();
@@ -84,7 +79,6 @@ export default function RideRequestPage() {
     }
 
     function selectDropoff(location) {
-        ensurePermanentGeocode(location);
         startNewDraft();
         setError("");
         clearCurrentDraftFeedback();
@@ -130,6 +124,7 @@ export default function RideRequestPage() {
         try {
             const nextRide = await createRide({ pickup, dropoff, rideType: submittedType, idempotencyKey: submissionKey });
             setCreatedRide(nextRide);
+            navigate(`/rides/${nextRide.id}`);
         } catch (rideError) {
             setCreationError(rideError.message);
         } finally {
@@ -147,7 +142,7 @@ export default function RideRequestPage() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white lg:flex">
-      <Header variant="sidebar" prop1='City Ride' prop2='Order History' prop3='Notification' prop4='Safety' prop6='Driver mode' />
+      <Header variant="sidebar" prop1='City Ride' prop2='My invitations' prop3='Notification' prop4='Safety' prop6='Driver mode' />
 
       <main className="mx-auto w-full max-w-7xl px-4 pb-10 pt-20 sm:px-6 sm:pt-24 lg:px-8 lg:pt-10">
         <div className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
