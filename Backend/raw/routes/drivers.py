@@ -43,8 +43,19 @@ def my_pending_offers(
     current_user: models.User = Depends(oauth.get_current_user),
 ):
     driver_matching_service.require_driver_profile(current_user, db)
-    driver_matching_service.expire_stale_offers(db)
+    stale_ride_ids = driver_matching_service.expire_stale_offers(db)
     db.commit()
+    # A timed-out offer must release the ride to the next candidate. Lock each
+    # ride before invoking the selector so concurrent pollers cannot race it.
+    for ride_id in stale_ride_ids:
+        ride = (
+            db.query(models.Ride)
+            .filter(models.Ride.id == ride_id)
+            .with_for_update()
+            .first()
+        )
+        if ride and ride.status in (models.RideStatus.ready_for_matching, models.RideStatus.matching):
+            driver_matching_service.offer_next_driver(ride.id, db)
     return (
         db.query(models.DriverOffer)
         .filter(

@@ -139,7 +139,7 @@ export default function RideRequestPage() {
         } catch (rideError) {
             if (isMountedRef.current && submittedDraft === activeDraftIdRef.current) setCreationError(rideError.message);
         } finally {
-            if (isMountedRef.current && submittedDraft === activeDraftIdRef.current) setIsCreatingRide(false);
+            if (isMountedRef.current) setIsCreatingRide(false);
         }
     }
   const routeDistance = route ? `${(route.distanceMeters / 1000).toFixed(1)} km` : '—';

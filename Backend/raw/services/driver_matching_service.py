@@ -36,16 +36,16 @@ def require_driver_profile(current_user: models.User, db: Session, *, lock=False
 def update_status(current_user: models.User, payload: schemas.DriverStatusUpdate, db: Session):
     profile = require_driver_profile(current_user, db, lock=True)
 
+    active_ride = db.query(models.Ride.id).filter(
+        models.Ride.driver_id == current_user.id,
+        models.Ride.status.in_((models.RideStatus.driver_assigned, models.RideStatus.in_progress)),
+    ).first()
+
     if payload.status == models.DriverStatus.available and profile.current_location is None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Send your current location before going online.")
 
-    if payload.status == models.DriverStatus.offline:
-        active_ride = db.query(models.Ride.id).filter(
-            models.Ride.driver_id == current_user.id,
-            models.Ride.status.in_((models.RideStatus.driver_assigned, models.RideStatus.in_progress)),
-        ).first()
-        if active_ride:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="You cannot go offline while assigned to an active ride.")
+    if active_ride and payload.status in (models.DriverStatus.available, models.DriverStatus.offline):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="You cannot change availability while assigned to an active ride.")
 
     # BUSY is owned by offer acceptance and completion, not manually set by a driver.
     if payload.status == models.DriverStatus.busy:
@@ -59,9 +59,16 @@ def update_status(current_user: models.User, payload: schemas.DriverStatusUpdate
 
 def update_location(current_user: models.User, payload: schemas.DriverLocationUpdate, db: Session):
     profile = require_driver_profile(current_user, db, lock=True)
+    received_at = utcnow()
+    recorded_at = payload.recorded_at
+    if recorded_at and recorded_at.tzinfo is None:
+        recorded_at = recorded_at.replace(tzinfo=timezone.utc)
+    if recorded_at and recorded_at > received_at:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Location timestamp cannot be in the future.")
+
     location = WKTElement(f"POINT({payload.longitude} {payload.latitude})", srid=4326)
     profile.current_location = location
-    profile.location_updated_at = payload.recorded_at or utcnow()
+    profile.location_updated_at = recorded_at or received_at
     db.add(models.DriverLocation(driver_id=current_user.id, location=location))
     db.commit()
     db.refresh(profile)
@@ -76,10 +83,12 @@ def expire_stale_offers(db: Session, ride_id: int | None = None):
     )
     if ride_id is not None:
         query = query.filter(models.DriverOffer.ride_id == ride_id)
-    return query.update(
+    stale_ride_ids = [ride_id for (ride_id,) in query.with_entities(models.DriverOffer.ride_id).distinct().all()]
+    query.update(
         {models.DriverOffer.status: models.OfferStatus.expired, models.DriverOffer.responded_at: utcnow()},
         synchronize_session=False,
     )
+    return stale_ride_ids
 
 
 def find_nearby_available_drivers(db: Session, pickup_location, excluded_driver_ids: list[int]):
@@ -133,6 +142,8 @@ def begin_matching(ride_id: int, current_user: models.User, db: Session):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ride not found.")
     if ride.creator_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the ride creator can find a driver.")
+    if ride.status == models.RideStatus.ready_for_matching:
+        return offer_next_driver(ride.id, db)
     if ride.status != models.RideStatus.gathering_passengers:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This ride cannot begin matching in its current state.")
 
