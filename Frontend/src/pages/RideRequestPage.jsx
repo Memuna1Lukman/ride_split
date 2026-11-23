@@ -29,9 +29,19 @@ export default function RideRequestPage() {
     const [dropoffHasUnconfirmedEdits, setDropoffHasUnconfirmedEdits] = useState(false);
     const routeRequestId = useRef(0);
     const idempotencyKey = useRef(null);
+    const activeDraftIdRef = useRef(0);
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     function startNewDraft() {
-        setActiveDraftId((currentDraftId) => currentDraftId + 1);
+        activeDraftIdRef.current += 1;
+        setActiveDraftId(activeDraftIdRef.current);
         idempotencyKey.current = null;
     }
 
@@ -112,7 +122,7 @@ export default function RideRequestPage() {
     async function handleCreateRide() {
         if (!canCreateRide || isCreatingRide) return;
 
-        const submittedDraft = activeDraftId;
+        const submittedDraft = activeDraftIdRef.current;
         const submittedType = rideType;
         const submissionKey = idempotencyKey.current ?? crypto.randomUUID();
         idempotencyKey.current = submissionKey;
@@ -123,12 +133,13 @@ export default function RideRequestPage() {
         setIsCreatingRide(true);
         try {
             const nextRide = await createRide({ pickup, dropoff, rideType: submittedType, idempotencyKey: submissionKey });
+            if (!isMountedRef.current || submittedDraft !== activeDraftIdRef.current) return;
             setCreatedRide(nextRide);
             navigate(`/rides/${nextRide.id}`);
         } catch (rideError) {
-            setCreationError(rideError.message);
+            if (isMountedRef.current && submittedDraft === activeDraftIdRef.current) setCreationError(rideError.message);
         } finally {
-            setIsCreatingRide(false);
+            if (isMountedRef.current && submittedDraft === activeDraftIdRef.current) setIsCreatingRide(false);
         }
     }
   const routeDistance = route ? `${(route.distanceMeters / 1000).toFixed(1)} km` : '—';

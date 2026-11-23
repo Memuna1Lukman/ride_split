@@ -2,7 +2,7 @@ from typing import List
 from fastapi import HTTPException,status,Depends,APIRouter,Response
 from sqlalchemy.orm import Session
 from .. import models,oauth,schemas
-from ..services import ride_service,invitation_service
+from ..services import ride_service,invitation_service, driver_matching_service
 from ..database import get_db
 from sqlalchemy import or_
 
@@ -187,3 +187,13 @@ def get_all_participants(
 @router.get("/{ride_id}",response_model=schemas.RideOut)
 def get_ride(ride_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(oauth.get_current_user)):
     return ride_service.get_ride(current_user, db, ride_id)
+
+
+@router.post("/{ride_id}/begin-matching", response_model=schemas.DriverOfferOut | None)
+def begin_driver_matching(
+    ride_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth.get_current_user),
+):
+    """Move a passenger's prepared ride into matching and send the first offer."""
+    return driver_matching_service.begin_matching(ride_id, current_user, db)
