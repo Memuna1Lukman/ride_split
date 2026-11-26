@@ -8,6 +8,7 @@ import RideDetailsPage from "./pages/RideDetailsPage";
 import InvitationsPage from "./pages/InvitationsPage";
 import { AuthProvider } from "./features/auth/AuthContext";
 import ProtectedRoute from "./features/auth/ProtectedRoute";
+import DriverModePage from "./pages/DriverModePage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/rides/:rideId" element={<ProtectedRoute><RideDetailsPage /></ProtectedRoute>} />
           <Route path="/invitations" element={<ProtectedRoute><InvitationsPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/drive" element={<ProtectedRoute><DriverModePage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
