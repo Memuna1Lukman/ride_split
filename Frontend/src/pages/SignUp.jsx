@@ -21,6 +21,9 @@ export default function SignUp() {
     email: '',
     phone: '',
     cityName: '',
+    vehicleType: '',
+    plateNumber: '',
+    capacity: '4',
     password: '',
     agreedToTerms: false,
   });
@@ -46,9 +49,10 @@ export default function SignUp() {
         phone: formData.phone,
         password: formData.password,
         role: role === 'driver' ? 'DRIVER' : 'PASSENGER',
+        ...(role === 'driver' ? { vehicle_type: formData.vehicleType, plate_number: formData.plateNumber, capacity: Number(formData.capacity) } : {}),
       });
       if (result.currentUser) {
-        navigate('/request-ride', { replace: true });
+        navigate(role === 'driver' ? '/drive' : '/request-ride', { replace: true });
       } else {
         setRecoveryEmail(formData.email);
         setLoginRecovery(result.loginError?.message || 'Your account was created, but automatic login was unavailable.');
@@ -265,9 +269,11 @@ export default function SignUp() {
           </div>
 
           {role === 'driver' && (
-            <p className="rounded-xl border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs text-amber-100">
-              Driver registration needs vehicle details. Choose Passenger for the ride-request flow for now.
-            </p>
+            <div className="grid grid-cols-1 gap-4 rounded-2xl border border-lime-200/15 bg-lime-200/[0.04] p-4 sm:grid-cols-3">
+              <div className="sm:col-span-1"><label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-white">Vehicle</label><Input type="text" name="vehicleType" required value={formData.vehicleType} onChange={handleChange} placeholder="Toyota Corolla" /></div>
+              <div><label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-white">Plate number</label><Input type="text" name="plateNumber" required value={formData.plateNumber} onChange={handleChange} placeholder="GR 1234-24" /></div>
+              <div><label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-white">Seats</label><Input type="number" min="1" max="100" name="capacity" required value={formData.capacity} onChange={handleChange} /></div>
+            </div>
           )}
 
           {error && (
@@ -285,10 +291,10 @@ export default function SignUp() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting || Boolean(loginRecovery) || role === 'driver'}
+            disabled={isSubmitting || Boolean(loginRecovery)}
             className="w-full rounded-full bg-lime-200 hover:bg-lime-300 text-neutral-900 font-bold py-3.5 px-6 text-sm sm:text-base transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-lime-200/20 cursor-pointer mt-4"
           >
-            {isSubmitting ? <span className="inline-flex items-center gap-2"><Spinner label="Creating account" />Creating account…</span> : 'Create Account'}
+            {isSubmitting ? <span className="inline-flex items-center gap-2"><Spinner label="Creating account" />Creating account…</span> : role === 'driver' ? 'Create driver account' : 'Create Account'}
           </button>
         </form>
 

@@ -228,6 +228,11 @@ class DriverOfferOut(APIModel):
     status: OfferStatus
     sent_at: datetime
     responded_at: Optional[datetime] = None
+    pickup_label: Optional[str] = None
+    dropoff_label: Optional[str] = None
+    capacity: Optional[int] = None
+    estimated_fare_pesewas: Optional[int] = None
+    currency: Optional[str] = None
 
 
 class RideOut(APIModel):
