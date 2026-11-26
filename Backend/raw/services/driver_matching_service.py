@@ -116,6 +116,15 @@ def offer_next_driver(ride_id: int, db: Session):
         return None
 
     expire_stale_offers(db, ride.id)
+    live_offer = db.query(models.DriverOffer).filter(
+        models.DriverOffer.ride_id == ride.id,
+        models.DriverOffer.status == models.OfferStatus.sent,
+    ).first()
+    if live_offer:
+        db.commit()
+        db.refresh(live_offer)
+        return live_offer
+
     offered_driver_ids = [
         driver_id for (driver_id,) in db.query(models.DriverOffer.driver_id)
         .filter(models.DriverOffer.ride_id == ride.id)

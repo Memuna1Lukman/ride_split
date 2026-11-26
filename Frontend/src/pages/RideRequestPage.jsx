@@ -22,6 +22,7 @@ export default function RideRequestPage() {
     const [isCreatingRide, setIsCreatingRide] = useState(false);
     const [creationError, setCreationError] = useState("");
     const [createdRide, setCreatedRide] = useState(null);
+    const [orphanedRide, setOrphanedRide] = useState(null);
     const [submittedRideType, setSubmittedRideType] = useState("");
     const [submissionDraftId, setSubmissionDraftId] = useState(null);
     const [activeDraftId, setActiveDraftId] = useState(0);
@@ -133,7 +134,11 @@ export default function RideRequestPage() {
         setIsCreatingRide(true);
         try {
             const nextRide = await createRide({ pickup, dropoff, rideType: submittedType, idempotencyKey: submissionKey });
-            if (!isMountedRef.current || submittedDraft !== activeDraftIdRef.current) return;
+            if (!isMountedRef.current) return;
+            if (submittedDraft !== activeDraftIdRef.current) {
+                setOrphanedRide(nextRide);
+                return;
+            }
             setCreatedRide(nextRide);
             navigate(`/rides/${nextRide.id}`);
         } catch (rideError) {
@@ -270,7 +275,7 @@ export default function RideRequestPage() {
             <button
               type="button"
               onClick={handleCreateRide}
-              disabled={!canCreateRide || isCreatingRide}
+              disabled={!canCreateRide || isCreatingRide || Boolean(orphanedRide)}
               className="mt-6 flex min-h-12 w-full items-center justify-center rounded-xl bg-lime-200 px-4 py-3 text-sm font-bold text-neutral-950 transition hover:bg-lime-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-200 disabled:cursor-not-allowed disabled:opacity-45"
             >
               {isCreatingRide ? 'Creating ride…' : `Request ${rideType} ride`}
@@ -278,6 +283,7 @@ export default function RideRequestPage() {
 
             {creationError && <p role="alert" className="mt-3 rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2.5 text-sm text-red-200">{submissionDraftId === activeDraftId ? creationError : `Previous request: ${creationError}`}</p>}
             {createdRide && <p role="status" className="mt-3 flex gap-2 rounded-xl border border-lime-200/20 bg-lime-200/10 px-3 py-2.5 text-sm text-lime-100"><CheckCircle2 className="mt-0.5 size-4 shrink-0" aria-hidden="true" />{submissionDraftId === activeDraftId ? 'Your' : 'Your previous'} {submittedRideType} ride has been created.</p>}
+            {orphanedRide && <div role="alert" className="mt-3 rounded-xl border border-amber-300/25 bg-amber-300/10 px-3 py-2.5 text-sm text-amber-100"><p>Your previous ride was created while you were editing this form. Open it before requesting another ride.</p><button type="button" onClick={() => navigate(`/rides/${orphanedRide.id}`)} className="mt-2 font-bold underline">Open ride #{orphanedRide.id}</button></div>}
 
             <button
               type="button"

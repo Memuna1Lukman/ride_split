@@ -103,6 +103,23 @@ def my_pending_offers(
     ]
 
 
+@router.get("/me/rides", response_model=List[schemas.RideOut])
+def my_active_rides(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth.get_current_user),
+):
+    driver_matching_service.require_driver_profile(current_user, db)
+    return (
+        db.query(models.Ride)
+        .filter(
+            models.Ride.driver_id == current_user.id,
+            models.Ride.status.in_((models.RideStatus.driver_assigned, models.RideStatus.in_progress)),
+        )
+        .order_by(models.Ride.driver_assigned_at.desc())
+        .all()
+    )
+
+
 @router.post("/offers/{offer_id}/respond", response_model=schemas.DriverOfferOut)
 def respond_to_driver_offer(
     offer_id: int,

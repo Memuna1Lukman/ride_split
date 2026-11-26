@@ -10,6 +10,7 @@ async function request(path, options = {}) {
 export function getDriverProfile() { return request('/drivers/me') }
 export function applyAsDriver(details) { return request('/drivers/apply', { method: 'POST', body: JSON.stringify(details) }) }
 export function getDriverOffers() { return request('/drivers/me/offers') }
+export function getDriverActiveRides() { return request('/drivers/me/rides') }
 export function updateDriverStatus(status) { return request('/drivers/me/status', { method: 'PATCH', body: JSON.stringify({ status }) }) }
 export function updateDriverLocation(latitude, longitude) { return request('/drivers/me/location', { method: 'PATCH', body: JSON.stringify({ latitude, longitude }) }) }
 export function respondToDriverOffer(offerId, status) { return request(`/drivers/offers/${offerId}/respond`, { method: 'POST', body: JSON.stringify({ status }) }) }

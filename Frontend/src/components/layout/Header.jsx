@@ -12,14 +12,11 @@ export default function Header({prop1="",prop2="",prop3="",prop4="",prop5="",pro
     { label: prop2 || 'My invitations', href: '/invitations' },
     { label: prop3 || 'Notification', href: '#notifications' },
     { label: prop4 || 'Safety', href: '#safety' },
-    { label: prop5 || 'Driver mode', href: '#driver-mode' },
+    { label: prop5 || 'Driver mode', href: '/drive' },
   ];
   const routeHref = location.pathname.startsWith('/rides/') ? '/request-ride' : location.pathname;
   const currentRouteHref = navItems.find((item) => item.href === routeHref)?.href;
-  const [selectedHashSelection, setSelectedHashSelection] = useState({ path: location.pathname, hash: location.hash });
-  const selectedHashHref = location.hash || (
-    selectedHashSelection.path === location.pathname ? selectedHashSelection.hash : ''
-  );
+  const selectedHashHref = location.hash;
   const activeHref = selectedHashHref || currentRouteHref || (location.pathname === '/profile' ? '' : '/request-ride');
 
   if (variant === 'sidebar') {
@@ -52,11 +49,6 @@ export default function Header({prop1="",prop2="",prop3="",prop4="",prop5="",pro
             {navItems.map(({ label, href }) => {
               const className = `flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-200 ${activeHref === href ? 'bg-lime-200 text-neutral-950' : 'text-neutral-400 hover:bg-white/10 hover:text-white'}`;
               const handleClick = () => {
-                if (href.startsWith('#')) {
-                  setSelectedHashSelection({ path: location.pathname, hash: href });
-                } else {
-                  setSelectedHashSelection({ path: '', hash: '' });
-                }
                 setIsMobileMenuOpen(false);
               };
 
